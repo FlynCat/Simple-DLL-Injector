@@ -3,7 +3,7 @@
 #include <string>
 namespace Window
 {
-	HWND Create(const std::wstring & title, const std::wstring & class_name);
+	HWND Create(const std::string& title, const std::string& class_name);
 	void Destroy();
 	bool PumpMsg();
 };

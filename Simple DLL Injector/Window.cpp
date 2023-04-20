@@ -2,6 +2,7 @@
 #include <imgui.h>
 #include "DirectX.h"
 #include <codecvt>
+#include <locale>
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 namespace Window {
 	HWND hWnd;
@@ -45,11 +46,23 @@ namespace Window {
 		}
 		return ::DefWindowProcW(hWnd, msg, wParam, lParam);
 	}
-	HWND Create(const std::wstring& title, const std::wstring& class_name)
+
+	std::wstring UTF8ToWide(const std::string& str)
 	{
-		WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, class_name.c_str(), nullptr };
+		int wtitle_length = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, NULL, 0);
+		std::wstring wtitle(wtitle_length, 0);
+		MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &wtitle[0], wtitle_length);
+		return wtitle;
+	}
+
+	HWND Create(const std::string& title, const std::string& class_name)
+	{
+		// Convert title string to wide-character string
+		std::wstring wtitle = UTF8ToWide(title);
+		std::wstring wclass = UTF8ToWide(class_name);
+		WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, wclass.c_str(), nullptr };
 		::RegisterClassExW(&wc);
-		HWND hwnd = CreateWindowW(wc.lpszClassName, title.c_str(), WS_OVERLAPPEDWINDOW, 100, 100, 500, 300, nullptr, nullptr, wc.hInstance, nullptr);
+		HWND hwnd = CreateWindowW(wc.lpszClassName, wtitle.c_str(), WS_OVERLAPPEDWINDOW, 100, 100, 500, 300, nullptr, nullptr, wc.hInstance, nullptr);
 		Window::wc = wc;
 		Window::hWnd = hwnd;
 
