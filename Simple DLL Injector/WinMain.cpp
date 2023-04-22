@@ -1,115 +1,204 @@
-#include "DirectX.h"
+﻿#include "DirectX.h"
 #include "Window.h"
 #include <imgui.h>
-#include <vector>
-#include <string>
-#include <Psapi.h>
-
+#include "State.h"
+#include "Util.h"
+#include <algorithm>
+#include <ranges>
 using namespace std;
 
-struct ProcessInfo {
-	string name;
-	string title;
-	DWORD id;
-	HWND hwnd;
-};
 
-std::vector<ProcessInfo> processList;
-size_t selectedIndex = 0;
-
-BOOL CALLBACK EnumWindowsProc(HWND hWnd, LPARAM lParam) {
-	//DWORD dwThreadId;
-	//HINSTANCE hInstance;
-	char winTitle[255];
-	if (!hWnd)															return TRUE;        // Not a window
-	if (!::IsWindowVisible(hWnd))										return TRUE;        // Not visible
-	if (!SendMessage(hWnd, WM_GETTEXT, sizeof(winTitle), (LPARAM)winTitle))	return TRUE;        // No window title
-	//if (hWnd == GetConsoleWindow())										return TRUE;		// Not our console window
-
-	//hInstance = (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE);
-	///*dwThreadId = */
-	DWORD procId;
-	GetWindowThreadProcessId(hWnd, &procId);
-	char processName[MAX_PATH];
-	HANDLE handle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, procId);
-	GetModuleFileNameExA(handle, 0, processName, MAX_PATH);
-	// Extract the file name from the path
-	char* name = strrchr(processName, '\\');
-	if (name != NULL) {
-		name++; // Move past the backslash
-	}
-	else {
-		name = processName;
-	}
-	//wstring winT(winTitle);
-	processList.push_back({ string(name),string(winTitle),procId,hWnd });
-	CloseHandle(handle);
-	//pID.push_back(procId);
-	//process.push_back(to_hex(procId) + "\t" + winT);
-
-	//cout << "PID:" << hex << uppercase << procId  << '\t' << String << '\t' << endl;
-	return TRUE;
+void Window::DropFile(const std::string& file) {
+    if (!util::isFileDll(file)) return;
+    auto name = strrchr(file.c_str(), '\\');
+    auto name2 = name + 1;
+    //bool found = std::ranges::any_of(files, [&file](const auto& dll) {
+    //    return dll.full == file;
+    //    });
+    auto found = std::ranges::any_of(state::dlls, [&file](const auto& dll) {return dll.full == file; });
+    if (!found) {
+        //files.push_back(file);
+        state::dlls.push_back({ name2,file });
+    }
+    state::save();
 }
 
-void RefreshProcess() {
-	processList.clear();
-	EnumWindows(EnumWindowsProc, 0);
-}
 
 void DirectX::Render()
 {
-	auto& io = ImGui::GetIO();
-	ImGui::ShowDemoWindow();
-	ImGui::Begin("Main Window", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize);                          // Create a window called "Hello, world!" and append into it.
-	ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-	static const char* current_item = processList.at(selectedIndex).name.c_str();
-	if (ImGui::BeginCombo("##combo", current_item)) // The second parameter is the label previewed before opening the combo.
-	{
-		for (auto n = 0u; n < processList.size(); n++)
-		{
-			bool is_selected = (current_item == processList[n].name); // You can store your selection however you want, outside or inside your objects
-			if (ImGui::Selectable(processList[n].name.c_str(), is_selected)) {
-				current_item = processList[n].name.c_str();
-				selectedIndex = n;
-			}
-			if (is_selected)
-				ImGui::SetItemDefaultFocus();   // You may set the initial focus when opening the combo (scrolling + for keyboard navigation support)
-		}
-		ImGui::EndCombo();
-	}
-	ImGui::Text("%s", processList.at(selectedIndex).title.c_str());
-	ImGui::End();
+    auto& io = ImGui::GetIO();
+    static bool injected = false;
+    ImGui::Begin("Main Window", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize);                          // Create a window called "Hello, world!" and append into it.
+    ImGui::Text("Process List | Last Process : %s", state::lastProcess.c_str());               // Display some text (you can use a format strings too)
+    //ImGui::ShowDemoWindow();
+    auto& processList = util::GetProcessList();
+    auto currentProcess = processList.at(state::processIdx);
+    state::selectedProcess = currentProcess.name.c_str();
+    if (ImGui::BeginCombo("##process_combo", state::selectedProcess)) // The second parameter is the label previewed before opening the combo.
+    {
+        for (auto n = 0u; n < processList.size(); n++)
+        {
+            auto generateId = [](ProcessInfo& process) {
+                return process.name + "##" + to_string((int)process.hwnd);
+            };
+            auto id = generateId(processList[n]);
+            auto currentId = generateId(currentProcess);
+            bool is_selected = (id == currentId); // You can store your selection however you want, outside or inside your objects
+            if (ImGui::Selectable(id.c_str(), is_selected)) {
+                state::selectedProcess = processList[n].name.c_str();
+                state::processIdx = n;
+                state::save();
+            }
+            if (ImGui::IsItemHovered()) {
+                auto utf = util::WideToUTF8(processList[n].title);
+                ImGui::SetTooltip("%s", utf.c_str());
+            }
+            if (is_selected)
+                ImGui::SetItemDefaultFocus();   // You may set the initial focus when opening the combo (scrolling + for keyboard navigation support)
+        }
+        ImGui::EndCombo();
+    }
+    if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("%s", currentProcess.fullPath.c_str());
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Refresh")) {
+        util::RefreshProcessList();
+        for (size_t i{ 0 }; i < processList.size(); i++) {
+            auto& process = processList[i];
+            if (process.name == state::lastProcess) {
+                state::processIdx = i;
+                break;
+            }
+        }
+    }
+    if (ImGui::BeginListBox("##dll_list"))
+    {
+        for (size_t n = 0; n < state::dlls.size(); n++)
+        {
+            const bool is_selected = (state::dllIdx == n);
+            if (ImGui::Selectable(state::dlls[n].name.c_str(), is_selected)) {
+                state::dllIdx = n;
+                state::save();
+            }
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("%s", state::dlls[n].full.c_str());
+            }
+            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+            if (is_selected)
+                ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndListBox();
+    }
+
+    if (!state::dlls.empty()) {
+        ImGui::SameLine();
+        if (ImGui::Button("Clear"))
+            ImGui::OpenPopup("Clear?");
+    }
+    if (ImGui::BeginPopupModal("Clear?", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
+    {
+        ImGui::Text("The DLL List will be cleared\nContinue?");
+        if (ImGui::Button("Yes", ImVec2(120, 0))) {
+            state::dlls.clear();
+            state::save();
+            ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::IsKeyDown(ImGuiKey::ImGuiKey_Escape)) {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::SetItemDefaultFocus();
+        ImGui::SameLine();
+        if (ImGui::Button("No", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+        ImGui::EndPopup();
+    }
+
+
+
+    ImGui::Text("%-10s : %s", "Process", currentProcess.name.c_str());
+    if (ImGui::IsItemHovered()) {
+        auto utf = util::WideToUTF8(currentProcess.title);
+        ImGui::SetTooltip("%s", utf.c_str());
+    }
+    if (!state::dlls.empty()) {
+        static bool autoInject = false;
+        ImGui::Text("%-10s : %s", "DLL", state::dlls[state::dllIdx].name.c_str());
+        if (ImGui::Button("Inject")) {
+            util::Inject(currentProcess.id, state::dlls[state::dllIdx].full);
+            state::save();
+        }
+        static float ms = 1.f;
+        if (!ImGui::Checkbox("Auto", &autoInject)) {
+            injected = false;
+        }
+        if (autoInject) {
+            ImGui::DragFloat("ms", &ms, 0.1f, 0.1f, 10.f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
+        }
+        if (autoInject && currentProcess.name == state::lastProcess && !injected) {
+            injected = true;
+            util::Inject(currentProcess.id, state::dlls[state::dllIdx].full);
+            state::save();
+        }
+        if (injected)
+            ImGui::Text("Injected");
+    }
+
+    ImGui::End();
 }
-
-
+void CALLBACK HandleWinEvent(HWINEVENTHOOK hook, DWORD event, HWND hwnd,
+    LONG idObject, LONG idChild,
+    DWORD dwEventThread, DWORD dwmsEventTime) {
+    if (event == EVENT_SYSTEM_FOREGROUND) {
+        // The foreground window has changed, do something here
+        auto& processList = util::RefreshProcessList();
+        for (size_t i{ 0 }; i < processList.size(); i++) {
+            auto& process = processList[i];
+            if (process.name == state::lastProcess) {
+                state::processIdx = i;
+                break;
+            }
+        }
+    }
+}
 int WINAPI WinMain(
-	_In_ HINSTANCE hInstance,
-	_In_opt_ HINSTANCE hPrevInstance,
-	_In_ LPSTR lpCmdLine,
-	_In_ int nShowCmd
-) {
-	HWND hwnd = Window::Create("Simple DLL Injector", "simple_dll_injector");
-	// Initialize Direct3D
-	if (!DirectX::Init(hwnd))
-	{
-		DirectX::Destroy();
-		Window::Destroy();
-		return 1;
-	}
-	DirectX::ImGuiInit();
-	// Main loop
-	RefreshProcess();
-	while (Window::PumpMsg())
-	{
+    _In_ HINSTANCE hInstance,
+    _In_opt_ HINSTANCE hPrevInstance,
+    _In_ LPSTR lpCmdLine,
+    _In_ int nShowCmd
+) {  // Set the hook
+    auto hook = SetWinEventHook(EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, NULL, HandleWinEvent, 0, 0, WINEVENT_OUTOFCONTEXT);
+    if (hook == NULL) {
+        // Failed to set hook
+        auto err = GetLastError();
+        return 1;
+    }
+    HWND hwnd = Window::Create("Simple DLL Injector", "simple_dll_injector");
+    // Initialize Direct3D
+    if (!DirectX::Init(hwnd))
+    {
+        DirectX::Destroy();
+        Window::Destroy();
+        return 1;
+    }
+    DirectX::ImGuiInit();
 
-		DirectX::Begin();
-		DirectX::Render();
-		DirectX::End();
-	}
-	DirectX::ImGuiDestroy();
-	// Cleanup
-	Window::Destroy();
-	DirectX::Destroy();
+    util::RefreshProcessList();
+    state::load();
+    auto lastHwnd = hwnd;
+    // Main loop
+    while (Window::PumpMsg())
+    {
+        DirectX::Begin();
+        DirectX::Render();
+        DirectX::End();
+    }
+    DirectX::ImGuiDestroy();
+    // Cleanup
+    Window::Destroy();
+    DirectX::Destroy();
 
-	return 0;
+    // Unhook when done
+    UnhookWinEvent(hook);
+
+    return 0;
 }
