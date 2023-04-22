@@ -10,7 +10,8 @@ namespace state {
     {
         ofstream out;
         out.open("state.ini");
-        out << "LAST_PROCESS:" << util::GetProcessList()[processIdx].name << "\n";
+        lastProcess = util::GetProcessList()[processIdx].name;
+        out << "LAST_PROCESS:" << lastProcess << "\n";
         if (!dlls.empty()) {
             out << "LAST_DLL:" << dlls[dllIdx].full << "\n";
             for (auto& dll : dlls) {
