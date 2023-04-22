@@ -47,7 +47,6 @@ void DirectX::Render()
             if (ImGui::Selectable(id.c_str(), is_selected)) {
                 state::selectedProcess = processList[n].name.c_str();
                 state::processIdx = n;
-                state::save();
             }
             if (ImGui::IsItemHovered()) {
                 auto utf = util::WideToUTF8(processList[n].title);
@@ -79,7 +78,6 @@ void DirectX::Render()
             const bool is_selected = (state::dllIdx == n);
             if (ImGui::Selectable(state::dlls[n].name.c_str(), is_selected)) {
                 state::dllIdx = n;
-                state::save();
             }
             if (ImGui::IsItemHovered()) {
                 ImGui::SetTooltip("%s", state::dlls[n].full.c_str());
@@ -127,6 +125,7 @@ void DirectX::Render()
             util::Inject(currentProcess.id, state::dlls[state::dllIdx].full);
             state::save();
         }
+        //TODO: use ms to delay injection
         static float ms = 1.f;
         if (!ImGui::Checkbox("Auto", &autoInject)) {
             injected = false;
