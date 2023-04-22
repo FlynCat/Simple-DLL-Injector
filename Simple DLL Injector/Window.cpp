@@ -85,12 +85,13 @@ namespace Window {
     }
 
 
-    HWND Create(const std::string& title, const std::string& class_name)
+    HWND Create(const std::string& title, const std::string& class_name, HINSTANCE hIns)
     {
         // Convert title string to wide-character string
         std::wstring wtitle = util::UTF8ToWide(title);
         std::wstring wclass = util::UTF8ToWide(class_name);
-        WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, wclass.c_str(), nullptr };
+        if (!hIns) hIns = GetModuleHandle(nullptr);
+        WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, hIns, nullptr, nullptr, nullptr, nullptr, wclass.c_str(), nullptr };
         ::RegisterClassExW(&wc);
         HWND hwnd = CreateWindowExW(WS_EX_ACCEPTFILES, wc.lpszClassName, wtitle.c_str(), WS_OVERLAPPEDWINDOW, 100, 100, 500, 350, nullptr, nullptr, wc.hInstance, nullptr);
         Window::wc = wc;

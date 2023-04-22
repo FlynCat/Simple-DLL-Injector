@@ -171,7 +171,7 @@ int WINAPI WinMain(
         auto err = GetLastError();
         return 1;
     }
-    HWND hwnd = Window::Create("Simple DLL Injector", "simple_dll_injector");
+    HWND hwnd = Window::Create("Simple DLL Injector", "simple_dll_injector", hInstance);
     // Initialize Direct3D
     if (!DirectX::Init(hwnd))
     {
