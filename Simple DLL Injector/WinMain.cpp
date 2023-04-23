@@ -121,6 +121,9 @@ void DirectX::Render()
     if (!state::dlls.empty()) {
         static bool autoInject = false;
         ImGui::Text("%-10s : %s", "DLL", state::dlls[state::dllIdx].name.c_str());
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("%s", state::dlls[state::dllIdx].full.c_str());
+        }
         if (ImGui::Button("Inject")) {
             util::Inject(currentProcess.id, state::dlls[state::dllIdx].full);
             state::save();
