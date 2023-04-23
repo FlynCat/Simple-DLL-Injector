@@ -80,6 +80,11 @@ namespace Window {
         case WM_DROPFILES:
             HandleFiles(wParam);
             break;
+        case WM_GETMINMAXINFO:
+            LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
+            lpMMI->ptMinTrackSize.x = 400;
+            lpMMI->ptMinTrackSize.y = 350;
+            break;
         }
 
         return ::DefWindowProcW(hWnd, msg, wParam, lParam);
