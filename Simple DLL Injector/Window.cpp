@@ -4,6 +4,7 @@
 #include "DirectX.h"
 #include <codecvt>
 #include <locale>
+#include "resource.h"
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 namespace Window {
     HWND hWnd;
@@ -91,7 +92,7 @@ namespace Window {
         std::wstring wtitle = util::UTF8ToWide(title);
         std::wstring wclass = util::UTF8ToWide(class_name);
         if (!hIns) hIns = GetModuleHandle(nullptr);
-        WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, hIns, nullptr, nullptr, nullptr, nullptr, wclass.c_str(), nullptr };
+        WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, hIns, LoadIcon(hIns, MAKEINTRESOURCE(IDI_ICON1)), nullptr, nullptr, nullptr, wclass.c_str(), nullptr };
         ::RegisterClassExW(&wc);
         HWND hwnd = CreateWindowExW(WS_EX_ACCEPTFILES, wc.lpszClassName, wtitle.c_str(), WS_OVERLAPPEDWINDOW, 100, 100, 500, 350, nullptr, nullptr, wc.hInstance, nullptr);
         Window::wc = wc;

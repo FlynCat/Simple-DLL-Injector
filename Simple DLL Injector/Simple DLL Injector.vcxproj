@@ -172,9 +172,16 @@
     <ClInclude Include="..\imgui\imstb_textedit.h" />
     <ClInclude Include="..\imgui\imstb_truetype.h" />
     <ClInclude Include="DirectX.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="Util.h" />
     <ClInclude Include="Window.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Simple DLL Injector.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\syringe.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
