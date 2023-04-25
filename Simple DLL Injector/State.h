@@ -4,6 +4,7 @@
 struct DllFile {
     std::string name;
     std::string full;
+    std::string lastProcess;
 };
 
 namespace state {

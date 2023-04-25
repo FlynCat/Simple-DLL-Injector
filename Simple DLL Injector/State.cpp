@@ -15,7 +15,11 @@ namespace state {
         if (!dlls.empty()) {
             out << "LAST_DLL:" << dlls[dllIdx].full << "\n";
             for (auto& dll : dlls) {
-                out << "DLL:" << dll.full << "\n";
+                out << "DLL:" << dll.full;
+                if (!dll.lastProcess.empty()) {
+                    out << "|" << dll.lastProcess;
+                }
+                out << "\n";
             }
         }
     }
@@ -52,11 +56,18 @@ namespace state {
             else if (line.starts_with("DLL:")) {
                 size_t idx = line.find_first_of(":");
                 auto file = line.substr(idx + 1, line.length());
-                auto name = strrchr(file.c_str(), '\\');
-                auto name2 = name + 1;
                 auto found = std::ranges::any_of(dlls, [&file](const auto& dll) {return dll.full == file; });
-                if (!found)
-                    dlls.push_back({ name2,file });
+                if (found) continue;
+
+                string lastP;
+                idx = file.find("|");
+                if (idx != string::npos) {
+                    lastP = file.substr(idx + 1, file.length());
+                    file = file.substr(0, idx);
+                }
+                auto name = strrchr(file.c_str(), '\\');
+                name++;
+                dlls.emplace_back(name, file, lastP);
             }
         }
         if (!lastDll.empty()) {

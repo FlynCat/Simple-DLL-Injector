@@ -28,8 +28,11 @@ void DirectX::Render()
 {
     auto& io = ImGui::GetIO();
     static bool injected = false;
+    const char* lastProcess = state::lastProcess.c_str();
+    if (!state::dlls.empty() && !state::dlls[state::dllIdx].lastProcess.empty())
+        lastProcess = state::dlls[state::dllIdx].lastProcess.c_str();
     ImGui::Begin("Main Window", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize);                          // Create a window called "Hello, world!" and append into it.
-    ImGui::Text("Process List | Last Process : %s", state::lastProcess.c_str());               // Display some text (you can use a format strings too)
+    ImGui::Text("Process List | Last Process : %s", lastProcess);               // Display some text (you can use a format strings too)
     //ImGui::ShowDemoWindow();
     auto& processList = util::GetProcessList();
     auto currentProcess = processList.at(state::processIdx);
@@ -65,7 +68,7 @@ void DirectX::Render()
         util::RefreshProcessList();
         for (size_t i{ 0 }; i < processList.size(); i++) {
             auto& process = processList[i];
-            if (process.name == state::lastProcess) {
+            if (process.name.compare(lastProcess) == 0) {
                 state::processIdx = i;
                 break;
             }
@@ -126,6 +129,7 @@ void DirectX::Render()
         }
         if (ImGui::Button("Inject")) {
             util::Inject(currentProcess.id, state::dlls[state::dllIdx].full);
+            state::dlls[state::dllIdx].lastProcess = currentProcess.name;
             state::save();
         }
         //TODO: use ms to delay injection
@@ -133,10 +137,13 @@ void DirectX::Render()
         if (!ImGui::Checkbox("Auto", &autoInject)) {
             injected = false;
         }
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Automatically inject to Last Process");
+        }
         if (autoInject) {
             ImGui::DragFloat("ms", &ms, 0.1f, 0.1f, 10.f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
         }
-        if (autoInject && currentProcess.name == state::lastProcess && !injected) {
+        if (autoInject && currentProcess.name == lastProcess && !injected) {
             injected = true;
             util::Inject(currentProcess.id, state::dlls[state::dllIdx].full);
             state::save();
@@ -150,12 +157,12 @@ void DirectX::Render()
 void CALLBACK HandleWinEvent(HWINEVENTHOOK hook, DWORD event, HWND hwnd,
     LONG idObject, LONG idChild,
     DWORD dwEventThread, DWORD dwmsEventTime) {
-    if (event == EVENT_SYSTEM_FOREGROUND) {
+    if (event == EVENT_SYSTEM_FOREGROUND && !state::dlls.empty()) {
         // The foreground window has changed, do something here
         auto& processList = util::RefreshProcessList();
         for (size_t i{ 0 }; i < processList.size(); i++) {
             auto& process = processList[i];
-            if (process.name == state::lastProcess) {
+            if (process.name == state::dlls[state::dllIdx].lastProcess) {
                 state::processIdx = i;
                 break;
             }
