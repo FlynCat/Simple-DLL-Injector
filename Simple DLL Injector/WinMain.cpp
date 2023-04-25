@@ -82,6 +82,18 @@ void DirectX::Render()
             if (ImGui::Selectable(state::dlls[n].name.c_str(), is_selected)) {
                 state::dllIdx = n;
             }
+            if (ImGui::BeginPopupContextItem()) {
+                if (ImGui::Button("Remove?")) {
+                    state::dlls.erase(state::dlls.begin() + n);
+                    while (state::dllIdx > 0 && state::dllIdx >= state::dlls.size()) {
+                        state::dllIdx--;
+                    }
+                    state::save();
+                    ImGui::CloseCurrentPopup();
+                    n--; // decrement n by 1 to account for the removed element
+                }
+                ImGui::EndPopup();
+            }
             if (ImGui::IsItemHovered()) {
                 ImGui::SetTooltip("%s", state::dlls[n].full.c_str());
             }
