@@ -38,7 +38,7 @@ namespace util {
         //char winTitle[MAX_PATH];
         auto titleLen = GetWindowTextLength(hWnd);
         if (!hWnd)															return TRUE;        // Not a window
-        if (hWnd == (HWND)lParam)											return TRUE;		// Not our window
+        //if (hWnd == (HWND)lParam)											return TRUE;		// Not our window
         if (!::IsWindowVisible(hWnd))										return TRUE;        // Not visible
         if (!titleLen)														return TRUE;		// No window title
         titleLen++;
@@ -52,7 +52,12 @@ namespace util {
         ///*dwThreadId = */
         DWORD procId;
         GetWindowThreadProcessId(hWnd, &procId);
-        auto pidExist = std::ranges::any_of(processList, [&procId](const auto& process) {return process.id == procId; });
+        if (procId == DWORD(lParam)) return TRUE;
+        auto pidExist = std::ranges::any_of(
+            processList,
+            [&procId, &lParam](const auto& process) {
+                return process.id == procId;
+            });
         if (pidExist) return TRUE;
 
         char processName[MAX_PATH];
@@ -74,7 +79,9 @@ namespace util {
     vector<ProcessInfo>& RefreshProcessList()
     {
         processList.clear();
-        EnumWindows(EnumWindowsProc, (LPARAM)Window::GetHwnd());
+        DWORD procId = 0x0;
+        GetWindowThreadProcessId(Window::GetHwnd(), &procId);
+        EnumWindows(EnumWindowsProc, LPARAM(procId));
         return processList;
     }
     bool Inject(DWORD processId, const std::string& dll) {
