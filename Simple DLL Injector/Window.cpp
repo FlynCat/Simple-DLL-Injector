@@ -9,6 +9,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 namespace Window {
     HWND hWnd;
     WNDCLASSEXW wc;
+    HANDLE mutex;
 
     // This function takes in a wParam from the WM_DROPFILES message and 
     // prints all the files to a message box.
@@ -93,6 +94,24 @@ namespace Window {
 
     HWND Create(const std::string& title, const std::string& class_name, HINSTANCE hIns)
     {
+#ifdef _DEBUG
+        mutex = CreateMutex(NULL, TRUE, "SIMPLEDINJECTOR_MUTEX_DEBUG");
+#else
+        mutex = CreateMutex(NULL, TRUE, "SIMPLEDINJECTOR_MUTEX");
+#endif // DEBUG
+
+        if (GetLastError() == ERROR_ALREADY_EXISTS) {
+            if (mutex)
+                CloseHandle(mutex);
+
+            // Convert title string to wide-character string
+            std::wstring wtitle = util::UTF8ToWide(title);
+            std::wstring wclass = util::UTF8ToWide(class_name);
+            SetForegroundWindow(FindWindowW(wclass.c_str(), wtitle.c_str()));
+            return NULL;
+        }
+
+
         // Convert title string to wide-character string
         std::wstring wtitle = util::UTF8ToWide(title);
         std::wstring wclass = util::UTF8ToWide(class_name);
@@ -116,6 +135,7 @@ namespace Window {
     {
         ::DestroyWindow(Window::hWnd);
         ::UnregisterClassW(Window::wc.lpszClassName, wc.hInstance);
+        CloseHandle(mutex);
     }
     bool PumpMsg()
     {

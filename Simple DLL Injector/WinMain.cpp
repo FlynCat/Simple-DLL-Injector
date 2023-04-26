@@ -210,6 +210,10 @@ int WINAPI WinMain(
         return 1;
     }
     HWND hwnd = Window::Create("Simple DLL Injector", "simple_dll_injector", hInstance);
+    if (!hwnd) {
+        UnhookWinEvent(hook);
+        return 1;
+    }
     // Initialize Direct3D
     if (!DirectX::Init(hwnd))
     {
