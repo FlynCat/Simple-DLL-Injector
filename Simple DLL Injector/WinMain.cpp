@@ -79,10 +79,11 @@ void DirectX::Render()
         for (size_t n = 0; n < state::dlls.size(); n++)
         {
             const bool is_selected = (state::dllIdx == n);
-            if (ImGui::Selectable(state::dlls[n].name.c_str(), is_selected)) {
+            auto fileExists = state::dlls[n].exists;
+            if (ImGui::Selectable(state::dlls[n].name.c_str(), is_selected, fileExists ? 0 : ImGuiSelectableFlags_Disabled)) {
                 state::dllIdx = n;
             }
-            if (ImGui::BeginPopupContextItem()) {
+            if (ImGui::BeginPopupContextItem("##remove_dll")) {
                 if (ImGui::Button("Remove?")) {
                     state::dlls.erase(state::dlls.begin() + n);
                     while (state::dllIdx > 0 && state::dllIdx >= state::dlls.size()) {
@@ -94,8 +95,11 @@ void DirectX::Render()
                 }
                 ImGui::EndPopup();
             }
-            if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip("%s", state::dlls[n].full.c_str());
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+                if (fileExists)
+                    ImGui::SetTooltip("%s", state::dlls[n].full.c_str());
+                else
+                    ImGui::SetTooltip("[X] File does not exists! [X]");
             }
             // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
             if (is_selected)
@@ -112,8 +116,20 @@ void DirectX::Render()
     if (ImGui::BeginPopupModal("Clear?", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
     {
         ImGui::Text("The DLL List will be cleared\nContinue?");
-        if (ImGui::Button("Yes", ImVec2(120, 0))) {
+        if (ImGui::Button("Clear All", ImVec2(120, 0))) {
             state::dlls.clear();
+            state::save();
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Clear not exists", ImVec2(120, 0))) {
+            //state::dlls.clear();
+            state::dlls.erase(
+                std::remove_if(
+                    state::dlls.begin(),
+                    state::dlls.end(),
+                    [](const DllFile& dll) { return !dll.exists; }),
+                state::dlls.end());
             state::save();
             ImGui::CloseCurrentPopup();
         }
@@ -122,7 +138,7 @@ void DirectX::Render()
         }
         ImGui::SetItemDefaultFocus();
         ImGui::SameLine();
-        if (ImGui::Button("No", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+        if (ImGui::Button("Cancel", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
         ImGui::EndPopup();
     }
 

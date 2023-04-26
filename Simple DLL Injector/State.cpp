@@ -3,6 +3,7 @@
 #include "Util.h"
 #include <ranges>
 #include <algorithm>
+#include <filesystem>
 
 using namespace std;
 namespace state {
@@ -70,7 +71,8 @@ namespace state {
                 }
                 auto name = strrchr(file.c_str(), '\\');
                 name++;
-                dlls.emplace_back(name, file, lastP);
+                auto exists = std::filesystem::exists(file);
+                dlls.emplace_back(name, file, lastP, exists);
             }
         }
         if (!lastDll.empty()) {
