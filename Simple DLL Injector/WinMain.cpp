@@ -113,7 +113,7 @@ void DirectX::Render()
         if (ImGui::Button("Clear"))
             ImGui::OpenPopup("Clear?");
     }
-    if (ImGui::BeginPopupModal("Clear?", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
+    if (ImGui::BeginPopupModal("Clear?", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings))
     {
         ImGui::Text("The DLL List will be cleared\nContinue?");
         if (ImGui::Button("Clear All", ImVec2(120, 0))) {
