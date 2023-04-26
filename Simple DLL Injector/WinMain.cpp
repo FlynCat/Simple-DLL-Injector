@@ -5,22 +5,18 @@
 #include "Util.h"
 #include <algorithm>
 #include <ranges>
+#include <filesystem>
 using namespace std;
 
 
 void Window::DropFile(const std::string& file) {
     if (!util::isFileDll(file)) return;
-    auto name = strrchr(file.c_str(), '\\');
-    auto name2 = name + 1;
-    //bool found = std::ranges::any_of(files, [&file](const auto& dll) {
-    //    return dll.full == file;
-    //    });
+    auto filename = std::filesystem::path(file).filename().string();
     auto found = std::ranges::any_of(state::dlls, [&file](const auto& dll) {return dll.full == file; });
     if (!found) {
-        //files.push_back(file);
-        state::dlls.push_back({ name2,file });
+        state::dlls.emplace_back(filename, file, "", true);
+        state::save();
     }
-    state::save();
 }
 
 

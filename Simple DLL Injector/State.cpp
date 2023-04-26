@@ -69,10 +69,11 @@ namespace state {
                     lastP = file.substr(idx + 1, file.length());
                     file = file.substr(0, idx);
                 }
-                auto name = strrchr(file.c_str(), '\\');
-                name++;
+                auto filename = std::filesystem::path(file).filename().string();
+                //auto name = strrchr(file.c_str(), '\\');
+                //name++;
                 auto exists = std::filesystem::exists(file);
-                dlls.emplace_back(name, file, lastP, exists);
+                dlls.emplace_back(filename, file, lastP, exists);
             }
         }
         if (!lastDll.empty()) {
