@@ -83,7 +83,7 @@ void DirectX::Render()
             if (ImGui::Selectable(state::dlls[n].name.c_str(), is_selected, fileExists ? 0 : ImGuiSelectableFlags_Disabled)) {
                 state::dllIdx = n;
             }
-            if (ImGui::BeginPopupContextItem("##remove_dll")) {
+            if (ImGui::BeginPopupContextItem()) {
                 if (ImGui::Button("Remove?")) {
                     state::dlls.erase(state::dlls.begin() + n);
                     while (state::dllIdx > 0 && state::dllIdx >= state::dlls.size()) {
