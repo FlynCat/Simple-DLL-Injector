@@ -24,7 +24,6 @@ void Window::DropFile(const std::string& file) {
 void DirectX::Render()
 {
     auto& io = ImGui::GetIO();
-    static bool injected = false;
     const char* lastProcess = state::lastProcess.c_str();
     if (!state::dlls.empty() && !state::getCurrentDll().lastProcess.empty())
         lastProcess = state::getCurrentDll().lastProcess.c_str();
@@ -179,7 +178,7 @@ void DirectX::Render()
             }
             else {
                 LOG_DEBUG("Auto Inject disabled");
-                injected = false;
+                state::autoInjected = false;
             }
         }
         if (ImGui::IsItemHovered()) {
@@ -206,8 +205,8 @@ void DirectX::Render()
             ImGui::DragFloat("ms", &ms, 0.1f, 0.1f, 10.f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
         }
         //TODO: Check process module
-        if (autoInject && currentProcess.name == lastProcess && !injected) {
-            injected = true;
+        if (autoInject && currentProcess.name == lastProcess && !state::autoInjected) {
+            state::autoInjected = true;
             if (util::Inject(currentProcess.id, state::getCurrentDll().full)) {
                 LOG_INFO("%s Injected to %s", state::getCurrentDll().name.c_str(), currentProcess.name.c_str());
             }
