@@ -6,6 +6,8 @@
 #include <locale>
 #include "resource.h"
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+constexpr auto WIDTH = 450;
+constexpr auto HEIGHT = 600;
 namespace Window {
     HWND hWnd;
     WNDCLASSEXW wc;
@@ -84,7 +86,7 @@ namespace Window {
         case WM_GETMINMAXINFO:
             LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
             lpMMI->ptMinTrackSize.x = 400;
-            lpMMI->ptMinTrackSize.y = 350;
+            lpMMI->ptMinTrackSize.y = HEIGHT;
             break;
         }
 
@@ -118,7 +120,7 @@ namespace Window {
         if (!hIns) hIns = GetModuleHandle(nullptr);
         WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, hIns, LoadIcon(hIns, MAKEINTRESOURCE(IDI_ICON1)), nullptr, nullptr, nullptr, wclass.c_str(), nullptr };
         ::RegisterClassExW(&wc);
-        HWND hwnd = CreateWindowExW(WS_EX_ACCEPTFILES, wc.lpszClassName, wtitle.c_str(), WS_OVERLAPPEDWINDOW, 100, 100, 500, 350, nullptr, nullptr, wc.hInstance, nullptr);
+        HWND hwnd = CreateWindowExW(WS_EX_ACCEPTFILES, wc.lpszClassName, wtitle.c_str(), WS_OVERLAPPEDWINDOW, 100, 100, WIDTH, HEIGHT, nullptr, nullptr, wc.hInstance, nullptr);
         Window::wc = wc;
         Window::hWnd = hwnd;
 
