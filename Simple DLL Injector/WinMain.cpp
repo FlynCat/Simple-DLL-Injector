@@ -153,15 +153,21 @@ void DirectX::Render()
             ImGui::SetTooltip("%s", state::dlls[state::dllIdx].full.c_str());
         }
         if (ImGui::Button("Inject", { ImGui::GetContentRegionAvail().x,40 })) {
-            //util::Inject(currentProcess.id, state::dlls[state::dllIdx].full);
-            if (util::Inject(currentProcess.id, state::dlls[state::dllIdx].full)) {
-                LOG_INFO("%s Injected to %s", state::dlls[state::dllIdx].name.c_str(), currentProcess.name.c_str());
+            if (util::CheckProcessModule(currentProcess.id, state::dlls[state::dllIdx].name.c_str())) {
+                //TODO: request confirmation
+                LOG_DEBUG("%s already loaded in the process!", state::dlls[state::dllIdx].name.c_str());
             }
             else {
-                LOG_ERROR("%s Injection failed into %s", state::dlls[state::dllIdx].name.c_str(), currentProcess.name.c_str());
+                //util::Inject(currentProcess.id, state::dlls[state::dllIdx].full);
+                if (util::Inject(currentProcess.id, state::dlls[state::dllIdx].full)) {
+                    LOG_INFO("%s Injected to %s", state::dlls[state::dllIdx].name.c_str(), currentProcess.name.c_str());
+                }
+                else {
+                    LOG_ERROR("%s Injection failed into %s", state::dlls[state::dllIdx].name.c_str(), currentProcess.name.c_str());
+                }
+                state::dlls[state::dllIdx].lastProcess = currentProcess.name;
+                state::save();
             }
-            state::dlls[state::dllIdx].lastProcess = currentProcess.name;
-            state::save();
         }
         //TODO: use ms to delay injection
         static float ms = 1.f;
@@ -199,6 +205,7 @@ void DirectX::Render()
         if (autoInject) {
             ImGui::DragFloat("ms", &ms, 0.1f, 0.1f, 10.f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
         }
+        //TODO: Check process module
         if (autoInject && currentProcess.name == lastProcess && !injected) {
             injected = true;
             if (util::Inject(currentProcess.id, state::dlls[state::dllIdx].full)) {
