@@ -26,8 +26,8 @@ void DirectX::Render()
     auto& io = ImGui::GetIO();
     static bool injected = false;
     const char* lastProcess = state::lastProcess.c_str();
-    if (!state::dlls.empty() && !state::dlls[state::dllIdx].lastProcess.empty())
-        lastProcess = state::dlls[state::dllIdx].lastProcess.c_str();
+    if (!state::dlls.empty() && !state::getCurrentDll().lastProcess.empty())
+        lastProcess = state::getCurrentDll().lastProcess.c_str();
     ImGui::Begin("Main Window", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize);                          // Create a window called "Hello, world!" and append into it.
     ImGui::Text("Process List | Last Process : %s", lastProcess);               // Display some text (you can use a format strings too)
     //ImGui::ShowDemoWindow();
@@ -148,24 +148,24 @@ void DirectX::Render()
     }
     if (!state::dlls.empty()) {
         static bool autoInject = false;
-        ImGui::Text("%-10s : %s", "DLL", state::dlls[state::dllIdx].name.c_str());
+        ImGui::Text("%-10s : %s", "DLL", state::getCurrentDll().name.c_str());
         if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("%s", state::dlls[state::dllIdx].full.c_str());
+            ImGui::SetTooltip("%s", state::getCurrentDll().full.c_str());
         }
         if (ImGui::Button("Inject", { ImGui::GetContentRegionAvail().x,40 })) {
-            if (util::CheckProcessModule(currentProcess.id, state::dlls[state::dllIdx].name.c_str())) {
+            if (util::CheckProcessModule(currentProcess.id, state::getCurrentDll().name.c_str())) {
                 //TODO: request confirmation
-                LOG_DEBUG("%s already loaded in the process!", state::dlls[state::dllIdx].name.c_str());
+                LOG_DEBUG("%s already loaded in the process!", state::getCurrentDll().name.c_str());
             }
             else {
-                //util::Inject(currentProcess.id, state::dlls[state::dllIdx].full);
-                if (util::Inject(currentProcess.id, state::dlls[state::dllIdx].full)) {
-                    LOG_INFO("%s Injected to %s", state::dlls[state::dllIdx].name.c_str(), currentProcess.name.c_str());
+                //util::Inject(currentProcess.id, state::getCurrentDll().full);
+                if (util::Inject(currentProcess.id, state::getCurrentDll().full)) {
+                    LOG_INFO("%s Injected to %s", state::getCurrentDll().name.c_str(), currentProcess.name.c_str());
                 }
                 else {
-                    LOG_ERROR("%s Injection failed into %s", state::dlls[state::dllIdx].name.c_str(), currentProcess.name.c_str());
+                    LOG_ERROR("%s Injection failed into %s", state::getCurrentDll().name.c_str(), currentProcess.name.c_str());
                 }
-                state::dlls[state::dllIdx].lastProcess = currentProcess.name;
+                state::getCurrentDll().lastProcess = currentProcess.name;
                 state::save();
             }
         }
@@ -208,11 +208,11 @@ void DirectX::Render()
         //TODO: Check process module
         if (autoInject && currentProcess.name == lastProcess && !injected) {
             injected = true;
-            if (util::Inject(currentProcess.id, state::dlls[state::dllIdx].full)) {
-                LOG_INFO("%s Injected to %s", state::dlls[state::dllIdx].name.c_str(), currentProcess.name.c_str());
+            if (util::Inject(currentProcess.id, state::getCurrentDll().full)) {
+                LOG_INFO("%s Injected to %s", state::getCurrentDll().name.c_str(), currentProcess.name.c_str());
             }
             else {
-                LOG_ERROR("%s Injection failed into %s", state::dlls[state::dllIdx].name.c_str(), currentProcess.name.c_str());
+                LOG_ERROR("%s Injection failed into %s", state::getCurrentDll().name.c_str(), currentProcess.name.c_str());
             }
             state::save();
         }
@@ -232,7 +232,7 @@ void CALLBACK HandleWinEvent(HWINEVENTHOOK hook, DWORD event, HWND hwnd,
         auto& processList = util::RefreshProcessList();
         for (size_t i{ 0 }; i < processList.size(); i++) {
             auto& process = processList[i];
-            if (process.name == state::dlls[state::dllIdx].lastProcess) {
+            if (process.name == state::getCurrentDll().lastProcess) {
                 state::processIdx = i;
                 break;
             }

@@ -14,6 +14,7 @@ namespace state {
     inline const char* selectedProcess;
     inline std::string lastProcess;
     inline std::vector<DllFile> dlls;
+    DllFile& getCurrentDll();
     void save();
     void load();
 }

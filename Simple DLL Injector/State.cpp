@@ -7,6 +7,9 @@
 
 using namespace std;
 namespace state {
+    DllFile& getCurrentDll() {
+        return dlls[dllIdx];
+    }
     void save()
     {
         ofstream out;
