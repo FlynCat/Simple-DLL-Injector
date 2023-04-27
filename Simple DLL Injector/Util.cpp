@@ -4,6 +4,7 @@
 #include <Psapi.h>
 #include <algorithm>
 #include "Window.h"
+#include "logger.h"
 using namespace std;
 namespace util {
     bool isFileDll(const std::string& path) {
@@ -87,21 +88,21 @@ namespace util {
     bool Inject(DWORD processId, const std::string& dll) {
         HANDLE handle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processId);
         if (!handle) {
-            OutputDebugString("Invalid handle\n");
+            LOG_ERROR("Invalid handle");
             return false;
         }
         void* loc = VirtualAllocEx(handle, 0, MAX_PATH, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
         if (!loc) {
-            OutputDebugString("Fail to allocate memory\n");
+            LOG_ERROR("Fail to allocate memory");
             return false;
         }
         if (!WriteProcessMemory(handle, loc, dll.c_str(), dll.length() + 1, 0)) {
-            OutputDebugString("Fail to write dll file\n");
+            LOG_ERROR("Fail to write dll file");
             return false;
         }
         HANDLE hThread = CreateRemoteThread(handle, 0, 0, (LPTHREAD_START_ROUTINE)LoadLibraryA, loc, 0, 0);
         if (!hThread) {
-            OutputDebugString("CreateRemoteThread failed\n");
+            LOG_ERROR("CreateRemoteThread failed");
             return false;
         }
         CloseHandle(handle);
