@@ -158,12 +158,37 @@ void DirectX::Render()
         }
         //TODO: use ms to delay injection
         static float ms = 1.f;
-        if (!ImGui::Checkbox("Auto", &autoInject)) {
-            injected = false;
+        //ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0)); // Set the item spacing to zero
+        static float aotWidth = 0.f;
+        if (ImGui::Checkbox("Auto", &autoInject)) {
+            if (autoInject) {
+                LOG_DEBUG("Auto Inject enabled");
+            }
+            else {
+                LOG_DEBUG("Auto Inject disabled");
+                injected = false;
+            }
         }
         if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("Automatically inject to Last Process");
         }
+        ImGui::SameLine();
+        static bool topMost = false;
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - aotWidth));
+        if (ImGui::Checkbox("Always On Top", &topMost)) {
+            auto hwnd = Window::GetHwnd();
+            if (topMost) {
+                SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+            }
+            else {
+                SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+            }
+        }
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Keep window on top");
+        }
+        aotWidth = ImGui::GetItemRectSize().x;
+        //ImGui::PopStyleVar();
         if (autoInject) {
             ImGui::DragFloat("ms", &ms, 0.1f, 0.1f, 10.f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
         }
