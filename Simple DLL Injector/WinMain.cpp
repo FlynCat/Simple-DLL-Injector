@@ -216,8 +216,6 @@ void DirectX::Render()
             }
             state::save();
         }
-        if (injected)
-            ImGui::Text("Injected");
     }
     ImGui::Separator();
     logger::Draw("Log");
