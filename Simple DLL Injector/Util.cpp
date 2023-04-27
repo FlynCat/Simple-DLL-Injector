@@ -62,8 +62,13 @@ namespace util {
         if (pidExist) return TRUE;
 
         char processName[MAX_PATH];
-        HANDLE handle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, procId);
+        HANDLE handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, procId);
         GetModuleFileNameExA(handle, 0, processName, MAX_PATH);
+
+        if (!handle) {
+            auto err = GetLastError();
+            LOG_ERROR("Failed To Get Process Handle : (%x)", err);
+        }
 
         // Extract the file name from the path
         char* name = strrchr(processName, '\\');
@@ -74,7 +79,8 @@ namespace util {
             name = processName;
         }
         processList.push_back({ string(name),string(processName),windowTitle,procId,hWnd });
-        CloseHandle(handle);
+        if (handle)
+            CloseHandle(handle);
         return TRUE;
     }
     vector<ProcessInfo>& RefreshProcessList()
