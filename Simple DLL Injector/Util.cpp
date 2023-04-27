@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <WtsApi32.h>
 #include "Window.h"
-#include "logger.h"
+#include "Logger.h"
 #include <TlHelp32.h>
 #include <chrono>
 
