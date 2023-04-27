@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <ranges>
 #include <filesystem>
+#include "logger.h"
 using namespace std;
 
 
@@ -151,8 +152,14 @@ void DirectX::Render()
         if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("%s", state::dlls[state::dllIdx].full.c_str());
         }
-        if (ImGui::Button("Inject")) {
-            util::Inject(currentProcess.id, state::dlls[state::dllIdx].full);
+        if (ImGui::Button("Inject", { ImGui::GetContentRegionAvail().x,40 })) {
+            //util::Inject(currentProcess.id, state::dlls[state::dllIdx].full);
+            if (util::Inject(currentProcess.id, state::dlls[state::dllIdx].full)) {
+                LOG_INFO("%s Injected to %s", state::dlls[state::dllIdx].name.c_str(), currentProcess.name.c_str());
+            }
+            else {
+                LOG_ERROR("%s Injection failed into %s", state::dlls[state::dllIdx].name.c_str(), currentProcess.name.c_str());
+            }
             state::dlls[state::dllIdx].lastProcess = currentProcess.name;
             state::save();
         }
@@ -194,12 +201,19 @@ void DirectX::Render()
         }
         if (autoInject && currentProcess.name == lastProcess && !injected) {
             injected = true;
-            util::Inject(currentProcess.id, state::dlls[state::dllIdx].full);
+            if (util::Inject(currentProcess.id, state::dlls[state::dllIdx].full)) {
+                LOG_INFO("%s Injected to %s", state::dlls[state::dllIdx].name.c_str(), currentProcess.name.c_str());
+            }
+            else {
+                LOG_ERROR("%s Injection failed into %s", state::dlls[state::dllIdx].name.c_str(), currentProcess.name.c_str());
+            }
             state::save();
         }
         if (injected)
             ImGui::Text("Injected");
     }
+    ImGui::Separator();
+    logger::Draw("Log");
 
     ImGui::End();
 }
@@ -224,6 +238,7 @@ int WINAPI WinMain(
     _In_ LPSTR lpCmdLine,
     _In_ int nShowCmd
 ) {  // Set the hook
+    logger::Clear();
     auto hook = SetWinEventHook(EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, NULL, HandleWinEvent, 0, 0, WINEVENT_OUTOFCONTEXT);
     if (hook == NULL) {
         // Failed to set hook
