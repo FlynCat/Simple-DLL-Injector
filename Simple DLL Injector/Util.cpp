@@ -1,10 +1,17 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include "Util.h"
 #include <Windows.h>
 #include <ranges>
 #include <Psapi.h>
 #include <algorithm>
+#include <WtsApi32.h>
 #include "Window.h"
 #include "logger.h"
+#include <TlHelp32.h>
+#include <chrono>
+
+#pragma comment(lib,"Wtsapi32.lib")
+
 using namespace std;
 namespace util {
     bool isFileDll(const std::string& path) {
@@ -115,6 +122,79 @@ namespace util {
         CloseHandle(hThread);
         return true;
     }
+    DWORD GetProcessId(const char* processName) {
+        DWORD pCount;
+        PWTS_PROCESS_INFO pInfos;
+        DWORD procId = 0;
+        if (WTSEnumerateProcesses(WTS_CURRENT_SERVER_HANDLE, NULL, 1, &pInfos, &pCount)) {
+            for (DWORD i = 0; i < pCount; i++) {
+                auto& p = pInfos[i];
+                if (strcmp(p.pProcessName, processName) == 0) {
+                    procId = p.ProcessId;
+                    break;
+                }
+
+                // do something with the process ID
+            }
+
+            WTSFreeMemory(pInfos);
+        }
+        return procId;
+
+    }
+
+    std::vector<std::string> GetProcessModules(DWORD pid)
+    {
+        std::vector<std::string> modules;
+
+        MODULEENTRY32 me32;
+
+        auto hModuleSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, pid);
+        if (hModuleSnap == INVALID_HANDLE_VALUE)
+            return modules;
+
+        me32.dwSize = sizeof(MODULEENTRY32);
+
+        if (!Module32First(hModuleSnap, &me32))
+        {
+            CloseHandle(hModuleSnap);
+            return modules;
+        }
+
+        do
+            modules.push_back(me32.szModule);
+        while (Module32Next(hModuleSnap, &me32));
+
+        CloseHandle(hModuleSnap);
+        return modules;
+    }
+    bool CheckProcessModule(DWORD pid, const char* module) {
+        MODULEENTRY32 me32;
+
+        auto hModuleSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, pid);
+        if (hModuleSnap == INVALID_HANDLE_VALUE) {
+            LOG_ERROR("Fail to check process module : Invalid handle!");
+            return false;
+        }
+
+        me32.dwSize = sizeof(MODULEENTRY32);
+
+        if (!Module32First(hModuleSnap, &me32))
+        {
+            LOG_ERROR("Fail to get process module!");
+            CloseHandle(hModuleSnap);
+            return false;
+        }
+        bool found = false;
+        do
+            if (strcmp(me32.szModule, module) == 0) {
+                found = true;
+                break;
+            }
+        while (Module32Next(hModuleSnap, &me32));
+        CloseHandle(hModuleSnap);
+        return found;
+    }
 #pragma endregion
 
     std::string WideToUTF8(const std::wstring& wstr)
@@ -123,6 +203,19 @@ namespace util {
         std::string utf8str(size_needed, 0);
         WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, utf8str.data(), size_needed, NULL, NULL);
         return utf8str;
+    }
+    std::string GetTime() {
+        // Get the current system time
+        std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+
+        // Convert the time to the local time
+        std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+        std::tm now_tm = *std::localtime(&now_c);
+
+        // Format the time string in the desired format
+        std::string timeString = std::format("{:02d}:{:02d}:{:02d}", now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec);
+
+        return timeString;
     }
 
 }
