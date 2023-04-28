@@ -168,23 +168,26 @@ void DirectX::Render()
                 state::save();
             }
         }
-        //TODO: use ms to delay injection
         static float ms = 1.f;
+        static float msCountdown = .0f;
         //ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0)); // Set the item spacing to zero
         static float aotWidth = 0.f;
-        if (ImGui::Checkbox("Auto", &autoInject)) {
-            if (autoInject) {
-                LOG_DEBUG("Auto Inject enabled");
+        if (state::getCurrentDll().lastProcess != "") {
+
+            if (ImGui::Checkbox("Auto", &autoInject)) {
+                if (autoInject) {
+                    LOG_DEBUG("Auto Inject enabled");
+                }
+                else {
+                    LOG_DEBUG("Auto Inject disabled");
+                    msCountdown = .0f;
+                }
             }
-            else {
-                LOG_DEBUG("Auto Inject disabled");
-                state::autoInjected = false;
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Automatically inject to Last Process");
             }
+            ImGui::SameLine();
         }
-        if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("Automatically inject to Last Process");
-        }
-        ImGui::SameLine();
         static bool topMost = false;
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - aotWidth));
         if (ImGui::Checkbox("Always On Top", &topMost)) {
@@ -204,16 +207,37 @@ void DirectX::Render()
         if (autoInject) {
             ImGui::DragFloat("ms", &ms, 0.1f, 0.1f, 10.f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
         }
-        //TODO: Check process module
-        if (autoInject && currentProcess.name == lastProcess && !state::autoInjected) {
-            state::autoInjected = true;
-            if (util::Inject(currentProcess.id, state::getCurrentDll().full)) {
-                LOG_INFO("%s Injected to %s", state::getCurrentDll().name.c_str(), currentProcess.name.c_str());
+        if (autoInject) {
+            if (currentProcess.name == lastProcess && msCountdown <= .0f) {
+                msCountdown = ms;
             }
-            else {
-                LOG_ERROR("%s Injection failed into %s", state::getCurrentDll().name.c_str(), currentProcess.name.c_str());
+            else if (currentProcess.name != lastProcess) {
+                msCountdown = 0.0f;
             }
-            state::save();
+            if (msCountdown > 0.0f) {
+                msCountdown -= io.DeltaTime;
+            }
+            if (msCountdown <= 0.0f && currentProcess.name == lastProcess) {
+                autoInject = false;
+                msCountdown = .0f;
+                if (util::CheckProcessModule(currentProcess.id, state::getCurrentDll().name.c_str())) {
+                    //TODO: request confirmation
+                    LOG_DEBUG("[AUTO] %s already loaded in the process!", state::getCurrentDll().name.c_str());
+                }
+                else {
+                    if (util::Inject(currentProcess.id, state::getCurrentDll().full)) {
+                        LOG_INFO("[AUTO] %s Injected to %s", state::getCurrentDll().name.c_str(), currentProcess.name.c_str());
+                    }
+                    else {
+                        LOG_ERROR("[AUTO] %s Injection failed into %s", state::getCurrentDll().name.c_str(), currentProcess.name.c_str());
+                    }
+                    state::save();
+                }
+            }
+            if (msCountdown > 0.0) {
+                ImGui::SameLine();
+                ImGui::Text("[Injecting in %d]", (int)ceil(msCountdown));
+            }
         }
     }
     ImGui::Separator();
