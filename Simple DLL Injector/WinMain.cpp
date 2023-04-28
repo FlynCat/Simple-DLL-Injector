@@ -11,7 +11,10 @@ using namespace std;
 
 
 void Window::DropFile(const std::string& file) {
-    if (!util::isFileDll(file)) return;
+    if (!util::isFileDll(file)) {
+        LOG_DEBUG("%s is not a dll", file.c_str());
+        return;
+    };
     auto filename = std::filesystem::path(file).filename().string();
     auto found = std::ranges::any_of(state::dlls, [&file](const auto& dll) {return dll.full == file; });
     if (!found) {
@@ -154,7 +157,7 @@ void DirectX::Render()
         if (ImGui::Button("Inject", { ImGui::GetContentRegionAvail().x,40 })) {
             if (util::CheckProcessModule(currentProcess.id, state::getCurrentDll().name.c_str())) {
                 //TODO: request confirmation
-                LOG_DEBUG("%s already loaded in the process!", state::getCurrentDll().name.c_str());
+                LOG_INFO("%s already loaded in the process!", state::getCurrentDll().name.c_str());
             }
             else {
                 //util::Inject(currentProcess.id, state::getCurrentDll().full);
@@ -203,11 +206,9 @@ void DirectX::Render()
             ImGui::SetTooltip("Keep window on top");
         }
         aotWidth = ImGui::GetItemRectSize().x;
-        //ImGui::PopStyleVar();
+
         if (autoInject) {
             ImGui::DragFloat("ms", &ms, 0.1f, 0.1f, 10.f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
-        }
-        if (autoInject) {
             if (currentProcess.name == lastProcess && msCountdown <= .0f) {
                 msCountdown = ms;
             }
@@ -222,7 +223,7 @@ void DirectX::Render()
                 msCountdown = .0f;
                 if (util::CheckProcessModule(currentProcess.id, state::getCurrentDll().name.c_str())) {
                     //TODO: request confirmation
-                    LOG_DEBUG("[AUTO] %s already loaded in the process!", state::getCurrentDll().name.c_str());
+                    LOG_INFO("[AUTO] %s already loaded in the process!", state::getCurrentDll().name.c_str());
                 }
                 else {
                     if (util::Inject(currentProcess.id, state::getCurrentDll().full)) {

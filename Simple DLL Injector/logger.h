@@ -11,7 +11,8 @@ namespace logger
     void    Draw(const char* title, bool* p_open = 0);
 };
 
-#define LOG_INFO(fmt, ...) logger::AddLog("[%s] " fmt "\n",util::GetTime().c_str(), ##__VA_ARGS__)
+#define LOG_TIME(fmt, ...) logger::AddLog("[%s] " fmt "\n",util::GetTime().c_str(), ##__VA_ARGS__)
+#define LOG_INFO(fmt, ...) logger::AddLog("[INFO] " fmt "\n", ##__VA_ARGS__)
 #ifdef _DEBUG
 #define LOG_DEBUG(fmt, ...) logger::AddLog("[DEBUG] " fmt "\n", ##__VA_ARGS__)
 #else
