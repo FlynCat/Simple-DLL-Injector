@@ -6,7 +6,7 @@
 #include <locale>
 #include "resource.h"
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-constexpr auto WIDTH = 450;
+constexpr auto WIDTH = 470;
 constexpr auto HEIGHT = 600;
 namespace Window {
     HWND hWnd;
@@ -85,7 +85,7 @@ namespace Window {
             break;
         case WM_GETMINMAXINFO:
             LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
-            lpMMI->ptMinTrackSize.x = 400;
+            lpMMI->ptMinTrackSize.x = WIDTH;
             lpMMI->ptMinTrackSize.y = HEIGHT;
             break;
         }
