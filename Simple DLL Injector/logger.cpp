@@ -60,6 +60,25 @@ namespace logger {
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
             const char* buf = Buf.begin();
             const char* buf_end = Buf.end();
+
+            auto Text = [](const char* line_start, const char* line_end) {
+                ImVec4 color{ 1.f,0.2f,1.f,1.0f };
+                if (strncmp(line_start, "[DEBUG]", strlen("[DEBUG]")) == 0)
+                    color = { 1.f,1.f,0.5,1.f };
+                else if (strncmp(line_start, "[ERROR]", strlen("[ERROR]")) == 0)
+                    color = { 1.f,0.5f,0.5f,1.f };
+                else if (strncmp(line_start, "[INFO]", strlen("[INFO]")) == 0)
+                    color = { 0.f,1.f,1.f,1.f };
+                if (Filter.PassFilter(line_start, line_end)) {
+                    ImGui::PushTextWrapPos();
+                    ImGui::PushStyleColor(0, color);
+                    ImGui::TextUnformatted(line_start, line_end);
+                    ImGui::PopStyleColor();
+                    ImGui::PopTextWrapPos();
+                }
+            };
+
+
             if (Filter.IsActive())
             {
                 // In this example we don't use the clipper when Filter is enabled.
@@ -70,11 +89,7 @@ namespace logger {
                 {
                     const char* line_start = buf + LineOffsets[line_no];
                     const char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
-                    if (Filter.PassFilter(line_start, line_end)) {
-                        ImGui::PushTextWrapPos();
-                        ImGui::TextUnformatted(line_start, line_end);
-                        ImGui::PopTextWrapPos();
-                    }
+                    Text(line_start, line_end);
                 }
             }
             else
@@ -100,16 +115,7 @@ namespace logger {
                     {
                         const char* line_start = buf + LineOffsets[line_no];
                         const char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
-                        ImVec4 color{ 0.f,1.5f,0.5f,1.0f };
-                        if (strncmp(line_start, "[DEBUG]", strlen("[DEBUG]")) == 0)
-                            color = { 1.f,1.f,0.5,1.f };
-                        else if (strncmp(line_start, "[ERROR]", strlen("[ERROR]")) == 0)
-                            color = { 1.f,0.5f,0.5f,1.f };
-                        ImGui::PushTextWrapPos();
-                        ImGui::PushStyleColor(0, color);
-                        ImGui::TextUnformatted(line_start, line_end);
-                        ImGui::PopStyleColor();
-                        ImGui::PopTextWrapPos();
+                        Text(line_start, line_end);
                     }
                 }
                 clipper.End();
