@@ -61,7 +61,7 @@ namespace logger {
             const char* buf = Buf.begin();
             const char* buf_end = Buf.end();
 
-            auto Text = [](const char* line_start, const char* line_end) {
+            static auto Text = [](const char* line_start, const char* line_end) {
                 ImVec4 color{ 1.f,0.2f,1.f,1.0f };
                 if (strncmp(line_start, "[DEBUG]", strlen("[DEBUG]")) == 0)
                     color = { 1.f,1.f,0.5,1.f };
