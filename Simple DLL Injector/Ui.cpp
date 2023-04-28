@@ -43,7 +43,7 @@ namespace ui {
             util::RefreshProcessList();
             for (size_t i{ 0 }; i < processList.size(); i++) {
                 auto& process = processList[i];
-                if (process.name.compare(lastProcess) == 0) {
+                if (process.name == lastProcess) {
                     state::processIdx = i;
                     break;
                 }
