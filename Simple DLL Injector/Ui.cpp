@@ -10,9 +10,8 @@ using namespace std;
 
 namespace ui {
 
-    void DrawProcessCombo(const char* lastProcess) {
+    void DrawProcessCombo(const char* lastProcess, ProcessInfo& currentProcess) {
         auto& processList = util::GetProcessList();
-        auto currentProcess = processList.at(state::processIdx);
         if (ImGui::BeginCombo("##process_combo", state::selectedProcess)) // The second parameter is the label previewed before opening the combo.
         {
             for (auto n = 0u; n < processList.size(); n++)
@@ -122,8 +121,25 @@ namespace ui {
         }
     }
 
+    void DrawPreInfo(ProcessInfo& currentProcess) {
+        ImGui::Text("%-10s : %s", "Process", currentProcess.name.c_str());
+        if (ImGui::IsItemHovered()) {
+            auto utf = util::WideToUTF8(currentProcess.title);
+            ImGui::SetTooltip("%s", utf.c_str());
+        }
+        if (!state::dlls.empty()) {
+            ImGui::Text("%-10s : %s", "DLL", state::getCurrentDll().name.c_str());
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("%s", state::getCurrentDll().full.c_str());
+            }
+        }
+    }
+
+    bool autoInject = false;
+    float secAutoInject = 1.f;
+    float msCountdown = .0f;
     void Draw() {
-        auto& io = ImGui::GetIO();
+        static auto& io = ImGui::GetIO();
         const char* lastProcess = state::lastProcess.c_str();
         if (!state::dlls.empty() && !state::getCurrentDll().lastProcess.empty())
             lastProcess = state::getCurrentDll().lastProcess.c_str();
@@ -133,20 +149,12 @@ namespace ui {
         auto& processList = util::GetProcessList();
         auto currentProcess = processList.at(state::processIdx);
         state::selectedProcess = currentProcess.name.c_str();
-        DrawProcessCombo(lastProcess);
+        DrawProcessCombo(lastProcess, currentProcess);
         DrawDllListbox();
+        DrawPreInfo(currentProcess);
 
-        ImGui::Text("%-10s : %s", "Process", currentProcess.name.c_str());
-        if (ImGui::IsItemHovered()) {
-            auto utf = util::WideToUTF8(currentProcess.title);
-            ImGui::SetTooltip("%s", utf.c_str());
-        }
+        //TODO: refactor needed
         if (!state::dlls.empty()) {
-            static bool autoInject = false;
-            ImGui::Text("%-10s : %s", "DLL", state::getCurrentDll().name.c_str());
-            if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip("%s", state::getCurrentDll().full.c_str());
-            }
             if (ImGui::Button("Inject", { ImGui::GetContentRegionAvail().x,40 })) {
                 if (util::CheckProcessModule(currentProcess.id, state::getCurrentDll().name.c_str())) {
                     //TODO: request confirmation
@@ -164,8 +172,6 @@ namespace ui {
                     state::save();
                 }
             }
-            static float ms = 1.f;
-            static float msCountdown = .0f;
             //ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0)); // Set the item spacing to zero
             static float aotWidth = 0.f;
             if (state::getCurrentDll().lastProcess != "") {
@@ -201,9 +207,9 @@ namespace ui {
             aotWidth = ImGui::GetItemRectSize().x;
 
             if (autoInject) {
-                ImGui::DragFloat("ms", &ms, 0.1f, 0.1f, 10.f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
+                ImGui::DragFloat("second(s)", &secAutoInject, 0.1f, 0.1f, 10.f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
                 if (currentProcess.name == lastProcess && msCountdown <= .0f) {
-                    msCountdown = ms;
+                    msCountdown = secAutoInject;
                 }
                 else if (currentProcess.name != lastProcess) {
                     msCountdown = 0.0f;
