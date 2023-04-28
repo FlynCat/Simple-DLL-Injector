@@ -161,6 +161,7 @@
     <ClCompile Include="DirectX.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="State.cpp" />
+    <ClCompile Include="Ui.cpp" />
     <ClCompile Include="Util.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="WinMain.cpp" />
@@ -178,6 +179,7 @@
     <ClInclude Include="Logger.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="State.h" />
+    <ClInclude Include="Ui.h" />
     <ClInclude Include="Util.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>

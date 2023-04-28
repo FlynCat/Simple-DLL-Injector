@@ -3,6 +3,7 @@
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
+#include "Ui.h"
 
 #pragma comment(lib, "d3d11.lib")
 
@@ -152,6 +153,11 @@ namespace DirectX {
         ImGui::SetNextWindowViewport(viewport->ID);
 
     }
+    void Render()
+    {
+        ui::Draw();
+    }
+
     void End()
     {
         // Rendering

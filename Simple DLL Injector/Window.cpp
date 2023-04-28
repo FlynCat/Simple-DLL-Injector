@@ -1,10 +1,14 @@
 #include "Window.h"
 #include "Util.h"
-#include <imgui.h>
-#include "DirectX.h"
-#include <codecvt>
-#include <locale>
 #include "resource.h"
+#include "State.h"
+#include "Logger.h"
+#include "DirectX.h"
+#include <imgui.h>
+#include <algorithm>
+#include <ranges>
+#include <filesystem>
+
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 constexpr auto WIDTH = 470;
 constexpr auto HEIGHT = 600;
@@ -13,6 +17,18 @@ namespace Window {
     WNDCLASSEXW wc;
     HANDLE mutex;
 
+    void DropFile(const std::string& file) {
+        if (!util::isFileDll(file)) {
+            LOG_DEBUG("%s is not a dll", file.c_str());
+            return;
+        };
+        auto filename = std::filesystem::path(file).filename().string();
+        auto found = std::ranges::any_of(state::dlls, [&file](const auto& dll) {return dll.full == file; });
+        if (!found) {
+            state::dlls.emplace_back(filename, file, "", true);
+            state::save();
+        }
+    }
     // This function takes in a wParam from the WM_DROPFILES message and 
     // prints all the files to a message box.
     void HandleFiles(WPARAM wParam)
