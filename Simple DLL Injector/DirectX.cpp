@@ -12,6 +12,7 @@ namespace DirectX {
     IDXGISwapChain* g_pSwapChain = nullptr;
     ID3D11RenderTargetView* g_mainRenderTargetView = nullptr;
     HWND hWnd;
+    UINT g_ResizeWidth = 0, g_ResizeHeight = 0;
     void CreateRenderTarget()
     {
         ID3D11Texture2D* pBackBuffer = nullptr;
@@ -69,11 +70,16 @@ namespace DirectX {
         ImGui_ImplWin32_Shutdown();
         ImGui::DestroyContext();
     }
-    void HandleResize(UINT newWidth, UINT newHeight)
+    void SetResize(UINT newWidth, UINT newHeight) {
+        g_ResizeWidth = newWidth;
+        g_ResizeHeight = newHeight;
+    }
+    void HandleResize()
     {
-        if (g_pd3dDevice) {
+        if (g_pd3dDevice && g_ResizeWidth != 0 && g_ResizeHeight != 0) {
             CleanupRenderTarget();
-            g_pSwapChain->ResizeBuffers(0, newWidth, newHeight, DXGI_FORMAT_UNKNOWN, 0);
+            g_pSwapChain->ResizeBuffers(0, g_ResizeWidth, g_ResizeHeight, DXGI_FORMAT_UNKNOWN, 0);
+            g_ResizeWidth = g_ResizeHeight = 0;
             CreateRenderTarget();
         }
     }
@@ -131,6 +137,8 @@ namespace DirectX {
     }
     void Begin()
     {
+        //https://github.com/ocornut/imgui/blob/085fa42b7df25cff3030a8c58547bb6c95d284f5/examples/example_win32_directx11/main.cpp#L99
+        HandleResize();
         // Start the Dear ImGui frame
         ImGui_ImplDX11_NewFrame();
         ImGui_ImplWin32_NewFrame();

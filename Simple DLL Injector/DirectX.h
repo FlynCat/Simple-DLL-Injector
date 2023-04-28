@@ -6,7 +6,8 @@ namespace DirectX
     void Destroy();
     void ImGuiInit();
     void ImGuiDestroy();
-    void HandleResize(UINT newWidth, UINT newHeight);
+    void SetResize(UINT newWidth, UINT newHeight);
+    void HandleResize();
     void Begin();
     void Render();
     void End();

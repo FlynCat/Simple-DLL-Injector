@@ -61,7 +61,7 @@ namespace Window {
         case WM_SIZE:
             if (wParam != SIZE_MINIMIZED)
             {
-                DirectX::HandleResize((UINT)LOWORD(lParam), (UINT)HIWORD(lParam));
+                DirectX::SetResize((UINT)LOWORD(lParam), (UINT)HIWORD(lParam));
             }
             return 0;
         case WM_SYSCOMMAND:
