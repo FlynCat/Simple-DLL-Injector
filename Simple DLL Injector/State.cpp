@@ -4,6 +4,7 @@
 #include <ranges>
 #include <algorithm>
 #include <filesystem>
+#include "Logger.h"
 
 using namespace std;
 namespace state {
@@ -63,8 +64,6 @@ namespace state {
             else if (line.starts_with("DLL:")) {
                 size_t idx = line.find_first_of(":");
                 auto file = line.substr(idx + 1, line.length());
-                auto found = std::ranges::any_of(dlls, [&file](const auto& dll) {return dll.full == file; });
-                if (found) continue;
 
                 string lastP;
                 idx = file.find("|");
@@ -72,6 +71,13 @@ namespace state {
                     lastP = file.substr(idx + 1, file.length());
                     file = file.substr(0, idx);
                 }
+
+                auto found = std::ranges::any_of(dlls, [&file](const auto& dll) {return dll.full == file; });
+                if (found) {
+                    LOG_DEBUG("%s is duplicate", file.c_str());
+                    continue;
+                }
+
                 auto filename = std::filesystem::path(file).filename().string();
                 //auto name = strrchr(file.c_str(), '\\');
                 //name++;
