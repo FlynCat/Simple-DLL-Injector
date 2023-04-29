@@ -16,6 +16,7 @@ namespace Window {
     HWND hWnd;
     WNDCLASSEXW wc;
     HANDLE mutex;
+    DWORD processId;
 
     void DropFile(const std::string& file) {
         if (!util::isFileDll(file)) {
@@ -140,6 +141,8 @@ namespace Window {
         Window::wc = wc;
         Window::hWnd = hwnd;
 
+        GetWindowThreadProcessId(hwnd, &processId);
+
         // Show the window
         ::ShowWindow(hwnd, SW_SHOWDEFAULT);
         ::UpdateWindow(hwnd);
@@ -148,6 +151,10 @@ namespace Window {
     HWND GetHwnd()
     {
         return hWnd;
+    }
+    DWORD GetProcessId()
+    {
+        return processId;
     }
     void Destroy()
     {
