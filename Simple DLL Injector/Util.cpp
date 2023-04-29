@@ -60,7 +60,7 @@ namespace util {
         ///*dwThreadId = */
         DWORD procId;
         GetWindowThreadProcessId(hWnd, &procId);
-        if (procId == DWORD(lParam)) return TRUE;
+        //if (procId == DWORD(lParam)) return TRUE;
         auto pidExist = std::ranges::any_of(
             processList,
             [&procId, &lParam](const auto& process) {
