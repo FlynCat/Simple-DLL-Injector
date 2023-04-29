@@ -114,9 +114,17 @@ namespace Window {
     HWND Create(const std::string& title, const std::string& class_name, HINSTANCE hIns)
     {
 #ifdef _DEBUG
+#ifdef _WIN64
+        mutex = CreateMutex(NULL, TRUE, "SIMPLEDINJECTOR_X64_MUTEX_DEBUG");
+#else
         mutex = CreateMutex(NULL, TRUE, "SIMPLEDINJECTOR_MUTEX_DEBUG");
+#endif // _WIN64
+#else   //RELEASE
+#ifdef _WIN64
+        mutex = CreateMutex(NULL, TRUE, "SIMPLEDINJECTOR_X64_MUTEX");
 #else
         mutex = CreateMutex(NULL, TRUE, "SIMPLEDINJECTOR_MUTEX");
+#endif // _WIN64
 #endif // DEBUG
 
         if (GetLastError() == ERROR_ALREADY_EXISTS) {
