@@ -17,7 +17,7 @@ namespace ui {
             for (auto n = 0u; n < processList.size(); n++)
             {
                 auto generateId = [](ProcessInfo& process) {
-                    return process.name + "##" + to_string((int)process.hwnd);
+                    return process.name + "##" + to_string((uintptr_t)process.hwnd);
                 };
                 auto id = generateId(processList[n]);
                 auto currentId = generateId(currentProcess);
