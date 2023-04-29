@@ -147,10 +147,10 @@ namespace DirectX {
 
 
         //https://github.com/ocornut/imgui/issues/3541#issuecomment-712248014
-        ImGuiViewport* viewport = ImGui::GetMainViewport();
-        ImGui::SetNextWindowPos(viewport->Pos);
-        ImGui::SetNextWindowSize(viewport->WorkSize);
-        ImGui::SetNextWindowViewport(viewport->ID);
+        //ImGuiViewport* viewport = ImGui::GetMainViewport();
+        //ImGui::SetNextWindowPos(viewport->Pos);
+        ImGui::SetNextWindowSize({ 450,600 });
+        //ImGui::SetNextWindowViewport(viewport->ID);
 
     }
     void Render()

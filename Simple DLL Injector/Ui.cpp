@@ -143,7 +143,8 @@ namespace ui {
         const char* lastProcess = state::lastProcess.c_str();
         if (!state::dlls.empty() && !state::getCurrentDll().lastProcess.empty())
             lastProcess = state::getCurrentDll().lastProcess.c_str();
-        ImGui::Begin("Main Window", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize);                          // Create a window called "Hello, world!" and append into it.
+        static bool open = true;
+        ImGui::Begin("Simple DLL Injector", &open, ImGuiWindowFlags_NoResize);                          // Create a window called "Hello, world!" and append into it.
         ImGui::Text("Process List | Last Process : %s", lastProcess);               // Display some text (you can use a format strings too)
         //ImGui::ShowDemoWindow();
         auto& processList = util::GetProcessList();
@@ -252,5 +253,8 @@ namespace ui {
         logger::Draw("Log");
 
         ImGui::End();
+        if (!open) {
+            PostQuitMessage(0);
+        }
     }
 }
