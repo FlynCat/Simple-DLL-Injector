@@ -133,27 +133,40 @@ namespace util {
 
     bool Inject(DWORD processId, const std::string& dll) {
         HANDLE handle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processId);
+        auto dllw = UTF8ToWide(dll);
         if (!handle) {
-            LOG_ERROR("Invalid handle");
+            auto error = ErrorCodeToString(GetLastError());
+            LOG_ERROR("Invalid handle. (%s)", error.c_str());
             return false;
         }
         void* loc = VirtualAllocEx(handle, 0, MAX_PATH, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
         if (!loc) {
-            LOG_ERROR("Fail to allocate memory");
+            auto error = ErrorCodeToString(GetLastError());
+            LOG_ERROR("Failed to allocate memory. (%s)", error.c_str());
+            CloseHandle(handle);
             return false;
         }
-        if (!WriteProcessMemory(handle, loc, dll.c_str(), dll.length() + 1, 0)) {
-            LOG_ERROR("Fail to write dll file");
+        if (!WriteProcessMemory(handle, loc, dllw.c_str(), (dllw.length() + 1) * sizeof(wchar_t), 0)) {
+            auto error = ErrorCodeToString(GetLastError());
+            LOG_ERROR("Failed to write dll file to target process. (%s)", error.c_str());
+            CloseHandle(handle);
             return false;
         }
-        HANDLE hThread = CreateRemoteThread(handle, 0, 0, (LPTHREAD_START_ROUTINE)LoadLibraryA, loc, 0, 0);
-        if (!hThread) {
-            LOG_ERROR("CreateRemoteThread failed");
-            return false;
+
+        auto hModule = CallRemoteThread(handle, LoadLibraryW, loc);
+
+        bool result = true;
+        if (hModule == NULL) {
+            auto errorCode = CallRemoteThread(handle, GetLastError, 0);
+            auto error = ErrorCodeToString(errorCode);
+            LOG_ERROR("LoadLibrary Error on target process! (%s)", error.c_str());
+            result = false;
         }
+
+        if (loc) VirtualFreeEx(handle, loc, 0, MEM_RELEASE);
         CloseHandle(handle);
-        CloseHandle(hThread);
-        return true;
+        return result;
+    }
     //https://stackoverflow.com/a/17387176
     //Returns the last Win32 error, in string format. Returns an empty string if there is no error.
     std::string ErrorCodeToString(DWORD errorMessageID)
