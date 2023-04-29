@@ -49,7 +49,7 @@ namespace util {
         //if (hWnd == (HWND)lParam)											return TRUE;		// Not our window
         DWORD procId;
         GetWindowThreadProcessId(hWnd, &procId);
-        if (!::IsWindowVisible(hWnd) && !procId != (DWORD)lParam)										return TRUE;        // Not visible
+        if (!::IsWindowVisible(hWnd) && procId != (DWORD)lParam)										return TRUE;        // Not visible
         if (!titleLen)														return TRUE;		// No window title
         titleLen++;
         //if (!SendMessage(hWnd, WM_GETTEXT, sizeof(winTitle), (LPARAM)winTitle))	return TRUE;        // No window title
