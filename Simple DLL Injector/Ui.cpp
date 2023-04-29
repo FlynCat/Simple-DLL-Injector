@@ -155,6 +155,8 @@ namespace ui {
 
         //TODO: refactor needed
         if (!state::dlls.empty()) {
+            auto ownProcess = Window::GetProcessId() == currentProcess.id;
+            if (ownProcess) ImGui::BeginDisabled();
             if (ImGui::Button("Inject", { ImGui::GetContentRegionAvail().x,40 })) {
                 if (util::CheckProcessModule(currentProcess.id, state::getCurrentDll().name.c_str())) {
                     //TODO: request confirmation
@@ -172,9 +174,15 @@ namespace ui {
                     state::save();
                 }
             }
+            if (ownProcess) {
+                ImGui::EndDisabled();
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+                    ImGui::SetTooltip("Select other process...");
+                }
+            }
             //ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0)); // Set the item spacing to zero
             static float aotWidth = 0.f;
-            if (state::getCurrentDll().lastProcess != "") {
+            if (state::getCurrentDll().lastProcess != "" && !ownProcess) {
 
                 if (ImGui::Checkbox("Auto", &autoInject)) {
                     if (autoInject) {
