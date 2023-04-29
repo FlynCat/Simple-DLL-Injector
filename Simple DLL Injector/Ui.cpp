@@ -37,6 +37,22 @@ namespace ui {
         }
         if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("%s", currentProcess.fullPath.c_str());
+            static auto& io = ImGui::GetIO();
+            if (io.MouseWheel > 0.f) {
+                LOG_DEBUG("UP");
+                if (int(state::processIdx) - 1 < 0) {
+                    state::processIdx = processList.size() - 1;
+                }
+                else {
+                    state::processIdx--;
+                }
+            }
+            else if (io.MouseWheel < 0.f) {
+                LOG_DEBUG("DOWN");
+                if (++state::processIdx >= processList.size()) {
+                    state::processIdx = 0;
+                }
+            }
         }
         ImGui::SameLine();
         if (ImGui::Button("Refresh")) {
