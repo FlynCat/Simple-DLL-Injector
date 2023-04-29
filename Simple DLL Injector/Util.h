@@ -19,8 +19,10 @@ namespace util
     std::vector<ProcessInfo>& GetProcessList();
     std::vector<ProcessInfo>& RefreshProcessList();
     DWORD GetProcessId(const char* processName);
+    std::string ErrorCodeToString(DWORD errorMessageID);
     std::vector<std::string> GetProcessModules(DWORD pid);
     bool CheckProcessModule(DWORD pid, const char* module);
+    DWORD CallRemoteThread(HANDLE handle, void* func, LPVOID param);
     bool Inject(DWORD processId, const std::string& dll);
 
 };
