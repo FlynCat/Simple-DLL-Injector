@@ -72,9 +72,10 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)\build\</OutDir>
-    <IntDir>$(SolutionDir)\build\int\</IntDir>
+    <OutDir>$(SolutionDir)\build\debug\</OutDir>
+    <IntDir>$(SolutionDir)\build\debug\int</IntDir>
     <IncludePath>$(SolutionDir)imgui;$(SolutionDir)imgui\backends;$(IncludePath)</IncludePath>
+    <TargetName>$(ProjectName)-debug</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -85,14 +86,16 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(SolutionDir)imgui;$(SolutionDir)imgui\backends;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)\build\x64\</OutDir>
-    <IntDir>$(SolutionDir)\build\x64\int\</IntDir>
+    <OutDir>$(SolutionDir)\build\debug\</OutDir>
+    <IntDir>$(SolutionDir)\build\debug\int</IntDir>
+    <TargetName>$(ProjectName)-x64-debug</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SolutionDir)imgui;$(SolutionDir)imgui\backends;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)\build\x64\release\</OutDir>
-    <IntDir>$(SolutionDir)\build\x64\release\int\</IntDir>
+    <OutDir>$(SolutionDir)\build\release\</OutDir>
+    <IntDir>$(SolutionDir)\build\release\int\</IntDir>
+    <TargetName>$(ProjectName)-x64</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
