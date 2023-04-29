@@ -77,6 +77,23 @@ namespace util {
             LOG_ERROR("Failed To Get Process Handle : (%x)", err);
         }
 
+        static auto compatibleArch = [](HANDLE hProcess)
+        {
+            BOOL isTargetWow64 = FALSE;
+            if (!IsWow64Process(hProcess, &isTargetWow64)) {
+                LOG_DEBUG("IsWow64Process failed!");
+            }
+            BOOL isInjectorWow64 = FALSE;
+            if (!IsWow64Process(GetCurrentProcess(), &isInjectorWow64)) {
+                LOG_DEBUG("IsWow64Process failed!");
+            }
+            if (isTargetWow64 == isInjectorWow64) {
+                return true;
+            }
+            return false;
+        };
+        if (!compatibleArch(handle)) return TRUE;
+
         // Extract the file name from the path
         char* name = strrchr(processName, '\\');
         if (name != NULL) {
