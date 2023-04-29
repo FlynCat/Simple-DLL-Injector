@@ -47,7 +47,9 @@ namespace util {
         auto titleLen = GetWindowTextLength(hWnd);
         if (!hWnd)															return TRUE;        // Not a window
         //if (hWnd == (HWND)lParam)											return TRUE;		// Not our window
-        if (!::IsWindowVisible(hWnd))										return TRUE;        // Not visible
+        DWORD procId;
+        GetWindowThreadProcessId(hWnd, &procId);
+        if (!::IsWindowVisible(hWnd) && !procId != (DWORD)lParam)										return TRUE;        // Not visible
         if (!titleLen)														return TRUE;		// No window title
         titleLen++;
         //if (!SendMessage(hWnd, WM_GETTEXT, sizeof(winTitle), (LPARAM)winTitle))	return TRUE;        // No window title
@@ -58,8 +60,6 @@ namespace util {
         delete[] title;
         //hInstance = (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE);
         ///*dwThreadId = */
-        DWORD procId;
-        GetWindowThreadProcessId(hWnd, &procId);
         //if (procId == DWORD(lParam)) return TRUE;
         auto pidExist = std::ranges::any_of(
             processList,
@@ -74,7 +74,7 @@ namespace util {
 
         if (!handle) {
             auto err = GetLastError();
-            LOG_ERROR("Failed To Get Process Handle : (%x)", err);
+            LOG_ERROR("Failed To Get Process Handle from PID (%d) : (%x)", procId, err);
         }
 
         static auto compatibleArch = [](HANDLE hProcess)
