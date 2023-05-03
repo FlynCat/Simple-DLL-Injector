@@ -17,6 +17,7 @@ namespace Window {
     WNDCLASSEXW wc;
     HANDLE mutex;
     DWORD processId;
+    std::string title;
 
     void DropFile(const std::string& file) {
         if (!util::isFileDll(file)) {
@@ -126,7 +127,6 @@ namespace Window {
         mutex = CreateMutex(NULL, TRUE, "SIMPLEDINJECTOR_MUTEX");
 #endif // _WIN64
 #endif // DEBUG
-
         if (GetLastError() == ERROR_ALREADY_EXISTS) {
             if (mutex)
                 CloseHandle(mutex);
@@ -138,6 +138,7 @@ namespace Window {
             return NULL;
         }
 
+        Window::title = title;
 
         // Convert title string to wide-character string
         std::wstring wtitle = util::UTF8ToWide(title);
@@ -163,6 +164,10 @@ namespace Window {
     DWORD GetProcessId()
     {
         return processId;
+    }
+    const char* GetTitle()
+    {
+        return title.c_str();
     }
     void Destroy()
     {

@@ -34,7 +34,12 @@ int WINAPI WinMain(
         auto err = GetLastError();
         return 1;
     }
+#ifdef _WIN64
+    HWND hwnd = Window::Create("Simple DLL Injector - x64", "simple_dll_injector_x64", hInstance);
+#else
     HWND hwnd = Window::Create("Simple DLL Injector", "simple_dll_injector", hInstance);
+#endif // _WIN64
+
     if (!hwnd) {
         UnhookWinEvent(hook);
         return 1;
