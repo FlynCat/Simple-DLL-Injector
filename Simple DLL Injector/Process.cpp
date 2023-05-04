@@ -49,10 +49,10 @@ namespace process {
         HANDLE handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, procId);
         GetModuleFileNameExA(handle, 0, processName, MAX_PATH);
 
-        if (!handle) {
-            auto err = GetLastError();
-            LOG_ERROR("Failed To Get Process Handle from PID (%d) : (%s)", procId, ErrorCodeToString(err).c_str());
-        }
+        //if (!handle) {
+        //    auto err = GetLastError();
+        //    LOG_ERROR("Failed To Get Process Handle from PID (%d) : (%s)", procId, ErrorCodeToString(err).c_str());
+        //}
 
         static auto compatibleArch = [](HANDLE hProcess)
         {
