@@ -1,7 +1,7 @@
 ﻿#include "DirectX.h"
 #include "Window.h"
 #include "State.h"
-#include "Util.h"
+#include "Process.h"
 #include "Logger.h"
 
 
@@ -10,7 +10,7 @@ void CALLBACK HandleWinEvent(HWINEVENTHOOK hook, DWORD event, HWND hwnd,
     DWORD dwEventThread, DWORD dwmsEventTime) {
     if (event == EVENT_SYSTEM_FOREGROUND && !state::dlls.empty()) {
         // The foreground window has changed, do something here
-        auto& processList = util::RefreshProcessList();
+        auto& processList = process::RefreshProcessList();
         for (size_t i{ 0 }; i < processList.size(); i++) {
             auto& process = processList[i];
             if (process.name == state::getCurrentDll().lastProcess) {
@@ -53,7 +53,7 @@ int WINAPI WinMain(
     }
     DirectX::ImGuiInit();
 
-    util::RefreshProcessList();
+    process::RefreshProcessList();
     state::load();
     auto lastHwnd = hwnd;
     // Main loop

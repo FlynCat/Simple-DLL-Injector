@@ -1,6 +1,6 @@
 #include "State.h"
 #include <fstream>
-#include "Util.h"
+#include "Process.h"
 #include <ranges>
 #include <algorithm>
 #include <filesystem>
@@ -15,7 +15,7 @@ namespace state {
     {
         ofstream out;
         out.open("state.ini");
-        lastProcess = util::GetProcessList()[processIdx].name;
+        lastProcess = process::GetProcessList()[processIdx].name;
         if (!dlls.empty()) {
             lastProcess = dlls[dllIdx].lastProcess;
         }
@@ -44,7 +44,7 @@ namespace state {
             if (line.starts_with("LAST_PROCESS:")) {
                 size_t idx = line.find_first_of(":");
                 lastProcess = line.substr(idx + 1, line.length());
-                auto& processList = util::GetProcessList();
+                auto& processList = process::GetProcessList();
                 bool set = false;
                 for (size_t i{ 0 }; i < processList.size(); i++) {
                     auto& process = processList[i];

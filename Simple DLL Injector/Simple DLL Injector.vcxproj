@@ -171,6 +171,7 @@
     <ClCompile Include="..\imgui\imgui_widgets.cpp" />
     <ClCompile Include="DirectX.cpp" />
     <ClCompile Include="Logger.cpp" />
+    <ClCompile Include="Process.cpp" />
     <ClCompile Include="State.cpp" />
     <ClCompile Include="Ui.cpp" />
     <ClCompile Include="Util.cpp" />
@@ -188,6 +189,7 @@
     <ClInclude Include="..\imgui\imstb_truetype.h" />
     <ClInclude Include="DirectX.h" />
     <ClInclude Include="Logger.h" />
+    <ClInclude Include="Process.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="Ui.h" />

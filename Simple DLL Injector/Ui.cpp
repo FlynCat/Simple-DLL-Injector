@@ -1,5 +1,6 @@
 #include "Ui.h"
 #include "State.h"
+#include "Process.h"
 #include "Util.h"
 #include "Logger.h"
 #include "Window.h"
@@ -11,7 +12,7 @@ using namespace std;
 namespace ui {
 
     void DrawProcessCombo(const char* lastProcess, ProcessInfo& currentProcess) {
-        auto& processList = util::GetProcessList();
+        auto& processList = process::GetProcessList();
         if (ImGui::BeginCombo("##process_combo", state::selectedProcess)) // The second parameter is the label previewed before opening the combo.
         {
             for (auto n = 0u; n < processList.size(); n++)
@@ -56,7 +57,7 @@ namespace ui {
         }
         ImGui::SameLine();
         if (ImGui::Button("Refresh")) {
-            util::RefreshProcessList();
+            process::RefreshProcessList();
             for (size_t i{ 0 }; i < processList.size(); i++) {
                 auto& process = processList[i];
                 if (process.name == lastProcess) {
@@ -163,7 +164,7 @@ namespace ui {
         ImGui::Begin(Window::GetTitle(), &open, ImGuiWindowFlags_NoResize);                          // Create a window called "Hello, world!" and append into it.
         ImGui::Text("Process List | Last Process : %s", lastProcess);               // Display some text (you can use a format strings too)
         //ImGui::ShowDemoWindow();
-        auto& processList = util::GetProcessList();
+        auto& processList = process::GetProcessList();
         auto currentProcess = processList.at(state::processIdx);
         state::selectedProcess = currentProcess.name.c_str();
         DrawProcessCombo(lastProcess, currentProcess);
@@ -175,13 +176,13 @@ namespace ui {
             auto ownProcess = Window::GetProcessId() == currentProcess.id;
             if (ownProcess) ImGui::BeginDisabled();
             if (ImGui::Button("Inject", { ImGui::GetContentRegionAvail().x,40 })) {
-                if (util::CheckProcessModule(currentProcess.id, state::getCurrentDll().name.c_str())) {
+                if (process::CheckProcessModule(currentProcess.id, state::getCurrentDll().name.c_str())) {
                     //TODO: request confirmation
                     LOG_INFO("%s already loaded in the process!", state::getCurrentDll().name.c_str());
                 }
                 else {
                     //util::Inject(currentProcess.id, state::getCurrentDll().full);
-                    if (util::Inject(currentProcess.id, state::getCurrentDll().full)) {
+                    if (process::Inject(currentProcess.id, state::getCurrentDll().full)) {
                         LOG_INFO("%s Injected to %s", state::getCurrentDll().name.c_str(), currentProcess.name.c_str());
                     }
                     else {
@@ -245,12 +246,12 @@ namespace ui {
                 if (msCountdown <= 0.0f && currentProcess.name == lastProcess) {
                     autoInject = false;
                     msCountdown = .0f;
-                    if (util::CheckProcessModule(currentProcess.id, state::getCurrentDll().name.c_str())) {
+                    if (process::CheckProcessModule(currentProcess.id, state::getCurrentDll().name.c_str())) {
                         //TODO: request confirmation
                         LOG_INFO("[AUTO] %s already loaded in the process!", state::getCurrentDll().name.c_str());
                     }
                     else {
-                        if (util::Inject(currentProcess.id, state::getCurrentDll().full)) {
+                        if (process::Inject(currentProcess.id, state::getCurrentDll().full)) {
                             LOG_INFO("[AUTO] %s Injected to %s", state::getCurrentDll().name.c_str(), currentProcess.name.c_str());
                         }
                         else {
