@@ -87,7 +87,7 @@ namespace state {
         }
         if (!lastDll.empty()) {
             for (size_t i{ 0 }; i < dlls.size(); i++) {
-                if (dlls[i].full == lastDll) {
+                if (dlls[i].full == lastDll && dlls[i].exists) {
                     dllIdx = i;
                     break;
                 }
