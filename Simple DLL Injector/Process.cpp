@@ -6,6 +6,7 @@
 #include "Logger.h"
 #include "Util.h"
 #include <TlHelp32.h>
+#include <filesystem>
 
 #pragma comment(lib,"Wtsapi32.lib")
 
@@ -35,6 +36,7 @@ namespace process {
         GetWindowTextW(hWnd, title, titleLen);
         auto windowTitle = wstring(title);
         delete[] title;
+        if (windowTitle == L"User Account Control") return TRUE;                        // Not UAC Popup
         //===============================//
         //========Check any duplicate====//
         auto pidExist = std::ranges::any_of(
@@ -45,14 +47,15 @@ namespace process {
         if (pidExist) return TRUE;
         //===============================//
 
-        char processName[MAX_PATH];
+        char processName[1024]{ 0 };
+        DWORD buffSize = 1024;
         HANDLE handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, procId);
-        GetModuleFileNameExA(handle, 0, processName, MAX_PATH);
-
-        //if (!handle) {
-        //    auto err = GetLastError();
-        //    LOG_ERROR("Failed To Get Process Handle from PID (%d) : (%s)", procId, ErrorCodeToString(err).c_str());
-        //}
+        if (handle) {
+            if (!QueryFullProcessImageName(handle, 0, processName, &buffSize)) {
+                auto error = ErrorCodeToString(GetLastError());
+                LOG_ERROR("QueryFullProcessImageName failed. (%s)", error.c_str());
+            }
+        }
 
         static auto compatibleArch = [](HANDLE hProcess)
         {
@@ -72,14 +75,9 @@ namespace process {
         if (!compatibleArch(handle)) return TRUE;
 
         // Extract the file name from the path
-        char* name = strrchr(processName, '\\');
-        if (name != NULL) {
-            name++; // Move past the backslash
-        }
-        else {
-            name = processName;
-        }
-        processList.push_back({ string(name),string(processName),windowTitle,procId,hWnd });
+        auto name = std::filesystem::path(processName).filename().string();
+
+        processList.push_back({ name,string(processName),windowTitle,procId,hWnd });
         if (handle)
             CloseHandle(handle);
         return TRUE;
