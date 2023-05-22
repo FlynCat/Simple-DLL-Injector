@@ -1,4 +1,3 @@
-#define _CRT_SECURE_NO_WARNINGS
 #include "Util.h"
 #include <Windows.h>
 #include <ranges>
@@ -34,7 +33,7 @@ namespace util {
         return wtitle;
     }
 
-    
+
 
     std::string WideToUTF8(const std::wstring& wstr)
     {
@@ -49,7 +48,8 @@ namespace util {
 
         // Convert the time to the local time
         std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-        std::tm now_tm = *std::localtime(&now_c);
+        std::tm now_tm;
+        localtime_s(&now_tm, &now_c);
 
         // Format the time string in the desired format
         std::string timeString = std::format("{:02d}:{:02d}:{:02d}", now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec);
